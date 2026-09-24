@@ -1,0 +1,16 @@
+# Java / Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Результаты экспорта — файлы генерируются заново при каждом запуске
+export/*.xlsx
+export/*.csv
+!export/.gitkeep

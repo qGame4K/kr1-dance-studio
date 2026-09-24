@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.mirea.dancestudio</groupId>
+    <artifactId>dance-studio-console</artifactId>
+    <version>1.0.0</version>
+    <name>Dance Studio Console (КР №1)</name>
+    <description>Консольная информационная система танцевальной студии: Java, JDBC, PostgreSQL</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <postgresql.version>42.7.13</postgresql.version>
+        <poi.version>5.5.1</poi.version>
+        <app.main.class>ru.mirea.dancestudio.Main</app.main.class>
+    </properties>
+
+    <dependencies>
+        <!-- JDBC-драйвер для подключения к PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+        <!-- Экспорт данных в Excel (.xlsx) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <!--
+            POI использует log4j-api для своего внутреннего логирования, но без
+            log4j-core (реализации) при первом обращении печатает в консоль
+            одну безобидную служебную строку "Log4j API could not find a logging
+            provider". log4j-core убирает эту строку и настроен тут в "тихом"
+            режиме — сами мы log4j нигде не используем и не настраиваем.
+        -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.3</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>dance-studio</finalName>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <!--
+                Собираем один jar-файл со всеми зависимостями внутри ("fat jar"),
+                чтобы запускать программу командой "java -jar dance-studio.jar"
+                без отдельной папки с библиотеками — так проще и для Docker,
+                и для запуска на любом компьютере.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${app.main.class}</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Запуск из Maven без сборки jar-файла: mvn compile exec:java -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>${app.main.class}</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

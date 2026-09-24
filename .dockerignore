@@ -1,0 +1,6 @@
+target/
+export/
+docs/
+.git/
+.gitignore
+*.md

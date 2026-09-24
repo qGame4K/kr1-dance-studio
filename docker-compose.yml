@@ -1,0 +1,59 @@
+# =====================================================================
+# Поднимает два контейнера:
+#   db  — PostgreSQL с уже готовой схемой и тестовыми данными
+#   app — наша Java-программа (консольная, поэтому запускается отдельной
+#         командой "docker compose run", а не через "docker compose up")
+#
+# Быстрый старт:
+#   docker compose up -d db      — поднять базу данных в фоне
+#   docker compose run --rm app  — запустить программу (интерактивно)
+#
+# Или просто ./start.sh (Linux/macOS) / start.bat (Windows).
+# =====================================================================
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dance_studio_db
+    environment:
+      POSTGRES_DB: dance_studio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      # Слева — порт на вашем компьютере, справа — порт внутри контейнера.
+      # 5433, а не 5432, чтобы не конфликтовать с локальным PostgreSQL, если он уже установлен.
+      # Программе (app) этот порт не нужен — она обращается к базе по имени "db" внутри сети Docker.
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Postgres сам выполнит эти файлы по алфавиту при первом запуске
+      # (когда том db_data ещё пустой) — так база и тестовые данные
+      # создаются автоматически, без ручных действий.
+      - ./sql/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./sql/02_test_data.sql:/docker-entrypoint-initdb.d/02_test_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dance_studio"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    container_name: dance_studio_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/dance_studio
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    # Программа консольная и ждёт ввода с клавиатуры — без этих двух строк
+    # Docker сразу закроет поток ввода, и Scanner в программе упадёт с ошибкой.
+    stdin_open: true
+    tty: true
+    volumes:
+      # Экспортированные Excel-файлы появятся в папке export/ на компьютере,
+      # а не останутся только внутри контейнера.
+      - ./export:/app/export
+
+volumes:
+  db_data:
