@@ -53,7 +53,8 @@ public class ExportService {
     }
 
     private void writeClients(Sheet sheet) {
-        writeHeader(sheet, "ID", "ФИО", "Телефон", "Email", "Дата рождения", "Возраст");
+        String[] headers = {"ID", "ФИО", "Телефон", "Email", "Дата рождения", "Возраст"};
+        writeHeader(sheet, headers);
         int rowNum = 1;
         for (Client client : clientRepository.findAll()) {
             Row row = sheet.createRow(rowNum++);
@@ -64,11 +65,13 @@ public class ExportService {
             row.createCell(4).setCellValue(client.getBirthDate().toString());
             row.createCell(5).setCellValue(client.getAge());
         }
+        autoSizeColumns(sheet, headers.length);
     }
 
     private void writeClasses(Sheet sheet) {
-        writeHeader(sheet, "ID", "Название", "Стиль", "Уровень", "Преподаватель",
-                "Начало", "Длительность, мин", "Вместимость", "Мин. возраст", "Цена");
+        String[] headers = {"ID", "Название", "Стиль", "Уровень", "Преподаватель",
+                "Начало", "Длительность, мин", "Вместимость", "Мин. возраст", "Цена"};
+        writeHeader(sheet, headers);
         int rowNum = 1;
         for (DanceClass danceClass : classRepository.findAll()) {
             Row row = sheet.createRow(rowNum++);
@@ -83,10 +86,12 @@ public class ExportService {
             row.createCell(8).setCellValue(danceClass.getMinAge());
             row.createCell(9).setCellValue(danceClass.getPrice().doubleValue());
         }
+        autoSizeColumns(sheet, headers.length);
     }
 
     private void writeEnrollments(Sheet sheet) {
-        writeHeader(sheet, "ID", "ID клиента", "ID занятия", "Статус", "Цена", "Оплачено", "Комментарий", "Создана");
+        String[] headers = {"ID", "ID клиента", "ID занятия", "Статус", "Цена", "Оплачено", "Комментарий", "Создана"};
+        writeHeader(sheet, headers);
         int rowNum = 1;
         for (Enrollment enrollment : enrollmentRepository.findAll()) {
             Row row = sheet.createRow(rowNum++);
@@ -99,12 +104,19 @@ public class ExportService {
             row.createCell(6).setCellValue(enrollment.getNote() == null ? "" : enrollment.getNote());
             row.createCell(7).setCellValue(enrollment.getCreatedAt().toString());
         }
+        autoSizeColumns(sheet, headers.length);
     }
 
-    private void writeHeader(Sheet sheet, String... titles) {
+    private void writeHeader(Sheet sheet, String[] titles) {
         Row row = sheet.createRow(0);
         for (int i = 0; i < titles.length; i++) {
             row.createCell(i).setCellValue(titles[i]);
+        }
+    }
+
+    private void autoSizeColumns(Sheet sheet, int columnCount) {
+        for (int i = 0; i < columnCount; i++) {
+            sheet.autoSizeColumn(i);
         }
     }
 }
