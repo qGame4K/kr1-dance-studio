@@ -48,12 +48,6 @@
     <build>
         <finalName>dance-studio</finalName>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
